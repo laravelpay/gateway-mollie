@@ -67,10 +67,11 @@ class Gateway extends GatewayFoundation
                 'value' => number_format($payment->total(), 2, '.', ''),
             ],
             'description' => $payment->description,
+            'cancelUrl' => $payment->cancelUrl(),
             // The URL the customer will be redirected to after the payment process
-            'redirectUrl' => $payment->successUrl(),
+            'redirectUrl' => $payment->webhookUrl(),
             // Your webhook to receive asynchronous payment status updates
-            'webhookUrl'  => $payment->webhookUrl(),
+//            'webhookUrl'  => $payment->webhookUrl(),
             // Some metadata to help you identify the payment in your system
             'metadata' => [
                 'payment_id' => $payment->id,
@@ -121,6 +122,10 @@ class Gateway extends GatewayFoundation
             throw new Exception('Payment record not found');
         }
 
+        if($payment->isPaid()) {
+            return redirect($payment->successUrl());
+        }
+
         // Use the transaction ID we stored earlier to fetch the latest
         // payment details from Mollie and confirm status, amount, etc.
         $transactionId = $payment->transaction_id;
@@ -141,17 +146,8 @@ class Gateway extends GatewayFoundation
 
         // Check if Mollie says the payment is "paid"
         if (isset($molliePayment['status']) && $molliePayment['status'] === 'paid') {
-            // Compare Mollie's paid amount with our expected amount
-            $amountPaid = $molliePayment['amount']['value'] ?? '0.00';
-            $expected   = number_format($payment->total(), 2, '.', '');
-
-            if ($amountPaid === $expected) {
-                // Mark this payment as completed in your system
-                // Optionally pass Mollie payment ID or other transaction details:
-                $payment->completed($molliePayment['id']);
-            } else {
-                throw new Exception('Unexpected payment amount');
-            }
+            $payment->completed($molliePayment['id'], $molliePayment);
+            return redirect($payment->successUrl());
         } else {
             // You could optionally handle other statuses such as "canceled" or "expired"
             throw new Exception('Unexpected or incomplete payment status');
