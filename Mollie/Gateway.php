@@ -69,9 +69,9 @@ class Gateway extends GatewayFoundation
             'description' => $payment->description,
             'cancelUrl' => $payment->cancelUrl(),
             // The URL the customer will be redirected to after the payment process
-            'redirectUrl' => $payment->webhookUrl(),
+            'redirectUrl' => $payment->callbackUrl(),
             // Your webhook to receive asynchronous payment status updates
-            'webhookUrl'  => $payment->webhookUrl(),
+            // 'webhookUrl'  => $payment->webhookUrl(),
             // Some metadata to help you identify the payment in your system
             'metadata' => [
                 'payment_id' => $payment->id,
@@ -152,5 +152,20 @@ class Gateway extends GatewayFoundation
             // You could optionally handle other statuses such as "canceled" or "expired"
             throw new Exception('Unexpected or incomplete payment status');
         }
+    }
+
+    /**
+     * Handle (webhooks) from Mollie.
+     * Mollie calls this endpoint whenever the payment status changes.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     *
+     * @throws \Exception
+     */
+    public function webhook(Request $request)
+    {
+        // todo
+        return response()->json(['status' => 'ok']);
     }
 }
