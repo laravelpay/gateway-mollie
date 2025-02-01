@@ -71,7 +71,7 @@ class Gateway extends GatewayFoundation
             // The URL the customer will be redirected to after the payment process
             'redirectUrl' => $payment->webhookUrl(),
             // Your webhook to receive asynchronous payment status updates
-//            'webhookUrl'  => $payment->webhookUrl(),
+            'webhookUrl'  => $payment->webhookUrl(),
             // Some metadata to help you identify the payment in your system
             'metadata' => [
                 'payment_id' => $payment->id,
